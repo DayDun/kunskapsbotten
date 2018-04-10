@@ -247,7 +247,7 @@ const commands = {
 				return false;
 			}
 			
-			if (/^[a-z]{3}[0-9]{4}@edu\.kunskapsskolan\.se$/.test(args[0])) {
+			if (/^[a-z]{3}[0-9]{4}@edu\.kunskapsskolan\.se$/.test(args[0].toLowerCase())) {
 				// Valid email
 				for (let i in data.users) {
 					if (data.users[i].email == args[0] && data.users[i].verified) {
@@ -273,7 +273,7 @@ const commands = {
 				message.channel.send(new Discord.RichEmbed({title:":white_check_mark: E-postbekräftelseskod skickad! Skriv __kp!verify <code>__ för att verifiera ditt konto."}));
 				return true;
 			} else {
-				message.channel.send(new Discord.RichEmbed({title:":x: Ogiltig e-postadress för skolan"}));
+				message.channel.send(new Discord.RichEmbed({title:":x: Ogiltig e-postadress. E-postadressen måste vara från skolan"}));
 				return true;
 			}
 		}
@@ -396,7 +396,7 @@ const commands = {
 				if (member.id in data.users) {
 					data.users[member.id].balance = parseInt(args[0]);
 					saveData();
-					message.channel.send(new Discord.RichEmbed({title:":white_check_mark: Balansen av " + member.displayName + " sattes till " + parseInt(args[0])}));
+					message.channel.send(new Discord.RichEmbed({title:":white_check_mark: Saldot av " + member.displayName + " sattes till " + parseInt(args[0])}));
 					return true;
 				} else {
 					message.channel.send(new Discord.RichEmbed({title:":x: Användaren är inte registrerad"}));
@@ -466,7 +466,7 @@ discord.on("message", function(message) {
 					message.channel.send(new Discord.RichEmbed({title:":x: " + command + " usage: __" + PREFIX + commands[command].usage + "__"}));
 				}
 			} else {
-				message.channel.send(new Discord.RichEmbed({title:":x: You don't have permission to use this command!"}));
+				message.channel.send(new Discord.RichEmbed({title:":x: Du har inte behörighet att använda det här kommandot!"}));
 			}
 		}
 		// Don't send an error message if the command doesn't exist.
