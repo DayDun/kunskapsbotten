@@ -2,10 +2,12 @@ const fs = require("fs");
 
 const Discord = require("discord.js");
 const discord = new Discord.Client();
+let guild;
 
 const secret = JSON.parse(fs.readFileSync("secret.json"));
 const data = JSON.parse(fs.readFileSync("data.json"));
 
+// Email
 const nodemailer = require("nodemailer");
 const mailTransport = nodemailer.createTransport({
 	service: "gmail",
@@ -14,6 +16,25 @@ const mailTransport = nodemailer.createTransport({
 		pass: secret.email
 	}
 });
+
+// Kunskapsporten stuff
+const https = require("https");
+class KpApi {
+	constructor() {
+		this.options = {
+			hostname: "sts.kedschools.com",
+			port: 443,
+			path: "/adfs/ls/idpinitiatedsignon.aspx?RelayState=RPID%3Dhttps%253A%252F%252Fks.kunskapsporten.se%26RelayState%3Dhttps://ks.kunskapsporten.se/&RedirectToIdentityProvider=http%3a%2f%2fsts.kunskapsskolan.se%2fadfs%2fservices%2ftrust",
+			method: "GET",
+			headers: {}
+		};
+	}
+	
+	request() {
+		https.request(this.options);
+	}
+}
+const port = new KpApi();
 
 // TODO: Improve interactive menu api
 // TODO: Modules
@@ -121,10 +142,10 @@ class PageMenu extends Menu {
 
 let roles = data.roles || {
 	"432939088711254037": { // Moderator
-		commands: ["help", "register", "verify", "stats", "balance", "slots", "daily", "setbalance", "eval"]
+		commands: ["help", "register", "verify", "stats", "balance", "leaderboard", "slots", "daily", "setbalance", "eval"]
 	},
 	"431418564755456000": { // @everyone
-		commands: ["help", "register", "verify", "stats", "balance", "slots", "daily"]
+		commands: ["help", "register", "verify", "stats", "balance", "leaderboard", "slots", "daily"]
 	}
 };
 
@@ -149,6 +170,9 @@ function saveData() {
 function xpForLevel(level) {
 	return 6 * (level + 1);
 }
+function xpTotal(level) {
+	return 3 * (level + 1) * (level + 2);
+}
 function levelReward(level) {
 	return Math.pow(2, level);
 }
@@ -170,6 +194,9 @@ function userAddXp(id, amount) {
 		saveData();
 		return didLevelUp;
 	}
+}
+function userXp(id) {
+	return (xpTotal(data.users[id].level) + data.users[id].xp);
 }
 
 const commands = {
@@ -238,8 +265,6 @@ const commands = {
 	"register": {
 		usage: "register <email>",
 		use: function(args, message) {
-			message.delete();
-			
 			if (message.author.id in data.users && data.users[message.author.id].verified) {
 				message.channel.send(new Discord.RichEmbed({title:":x: Redan registrerad"}));
 				return true;
@@ -257,6 +282,7 @@ const commands = {
 						return true;
 					}
 				}
+				message.delete();
 				data.users[message.author.id] = {
 					email: args[0],
 					code: Math.floor(1000 + Math.random() * 9000),
@@ -415,6 +441,36 @@ const commands = {
 			}
 		}
 	},
+	"leaderboard": {
+		usage: "leaderboard",
+		use: function(args, message) {
+			if (!(message.author.id in data.users) || !data.users[message.author.id].verified) {
+				message.channel.send(new Discord.RichEmbed({title:":x: Du måste registrera dig först. __ks!register <email>__"}));
+				return true;
+			}
+			
+			let list = Object.keys(data.users).sort(function(a, b) {
+				return userXp(b) - userXp(a);
+			});
+			let length = Math.max.apply(null, list.map(function(user){return guild.members.get(user).displayName.length;}));
+
+			message.channel.send(new Discord.RichEmbed({
+				title: "Leaderboard 📋",
+				description: "```md\n" + list.slice(0, 10).map(function(user, i) {
+					return "[" + (i + 1 + " ").slice(0, 2) + "]" +
+						   "(" + (guild.members.get(user).displayName + (new Array(length).fill(" ").join(""))).slice(0, length) + ") " +
+						   "<xp: " + userXp(user) + ">";
+				}).join("\n") + "```",
+				fields: [
+					{
+						name: "Din plats",
+						value: "```md\n[" + (list.indexOf(message.author.id) + 1) + "](" + message.member.displayName + ") <xp: " + userXp(message.author.id) + ">```"
+					}
+				]
+			}));
+			return true;
+		}
+	},
 	"slots": {
 		usage: "slots (<bet>)",
 		use: function(args, message) {
@@ -546,6 +602,7 @@ const commands = {
 discord.on("ready", function() {
 	console.log("Ready");
 	discord.user.setPresence({status:"online",game:{name:"ks!help"}});
+	guild = discord.guilds.get(data.guildId || "431418564755456000");
 });
 
 discord.on("message", function(message) {
