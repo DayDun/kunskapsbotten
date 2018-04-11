@@ -1,3 +1,4 @@
+const Discord = require("discord.js");
 const main = require("../../main");
 
 module.exports.eval = {

@@ -1,3 +1,4 @@
+const Discord = require("discord.js");
 const main = require("../../main");
 
 module.exports = {
@@ -8,7 +9,7 @@ module.exports = {
                 if (main.data.users[message.author.id].code == args[0]) {
                     main.data.users[message.author.id].verified = true;
                     message.member.addRole("432813256638464012");
-                    saveData();
+                    main.saveData();
                     message.channel.send(new Discord.RichEmbed({title:":white_check_mark: Ditt konto har blivit verifierat"}));
                     return true;
                 } else {

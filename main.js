@@ -308,7 +308,7 @@ commands.steg = {
 discord.on("ready", function() {
 	console.log("Ready");
 	discord.user.setPresence({status:"online",game:{name:"ks!help"}});
-	guild = discord.guilds.get(data.guildId || "431418564755456000");
+	guild = module.exports.guild = discord.guilds.get(data.guildId || "431418564755456000");
 });
 
 discord.on("message", function(message) {
@@ -364,6 +364,7 @@ discord.login(secret.token);
 module.exports.PageMenu = PageMenu;
 module.exports.mailTransport = mailTransport;
 module.exports.data = data;
+module.exports.guild = guild;
 
 module.exports.getUser = getUser;
 module.exports.saveData = saveData;

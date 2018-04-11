@@ -1,3 +1,4 @@
+const Discord = require("discord.js");
 const main = require("../../main");
 
 module.exports = {
@@ -29,12 +30,12 @@ module.exports = {
                 xp: 0,
                 level: 0
             };
-            saveData(newData);
+            main.saveData();
             main.mailTransport.sendMail({
                 from: "TheDayDun@gmail.com",
                 to: args[0],
                 subject: "Mejl verifikation",
-                text: "Det här är din e-postbekräftelsekod: " + data.users[message.author.id].code
+                text: "Det här är din e-postbekräftelsekod: " + main.data.users[message.author.id].code
             });
             message.channel.send(new Discord.RichEmbed({title:":white_check_mark: E-postbekräftelseskod skickad! Skriv __ks!verify <code>__ för att verifiera ditt konto."}));
             return true;
