@@ -119,7 +119,7 @@ class PageMenu extends Menu {
 	}
 }
 
-const roles = {
+let roles = data.roles || {
 	"432939088711254037": { // Moderator
 		commands: ["help", "register", "verify", "stats", "balance", "slots", "daily", "setbalance", "eval"]
 	},
