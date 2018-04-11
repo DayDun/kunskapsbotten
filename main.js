@@ -12,7 +12,7 @@ const nodemailer = require("nodemailer");
 const mailTransport = nodemailer.createTransport({
 	service: "gmail",
 	auth: {
-		user: "thedaydun@gmail.com",
+		user: data.gmail || "thedaydun@gmail.com",
 		pass: secret.email
 	}
 });
