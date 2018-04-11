@@ -187,7 +187,7 @@ const roles = {
 		commands: ["help", "register", "verify", "stats", "balance", "leaderboard", "slots", "daily", "steg", "setbalance", "eval"]
 	},
 	"431418564755456000": { // @everyone
-		commands: ["help", "register", "verify", "stats", "balance", "leaderboard", "slots", "daily"]
+		commands: ["help", "register", "verify", "stats", "balance", "leaderboard", "slots", "daily", "steg"]
 	}
 };
 
@@ -642,7 +642,7 @@ const commands = {
 				"tyska": "tyska"
 			};
 			
-			if (!(args[0] in subjects)) {
+			if (!(args[0].toLowerCase() in subjects)) {
 				message.channel.send(new Discord.RichEmbed({title:":x: Ogiltigt ämne"}));
 				return false;
 			}
@@ -653,7 +653,7 @@ const commands = {
 				return false;
 			}
 			
-			port.request("https://ks.kunskapsporten.se/steg/" + subjects[args[0]] + "/block" + Math.ceil(steg / 5) + "/steg" + steg + "/introduktion", function(error, response, body) {
+			port.request("https://ks.kunskapsporten.se/steg/" + subjects[args[0].toLocaleLowerCase()] + "/block" + Math.ceil(steg / 5) + "/steg" + steg + "/introduktion", function(error, response, body) {
 				if (error) {
 					message.channel.send(new Discord.RichEmbed({title:":x: Steget kunde inte laddas"}));
 					return;
