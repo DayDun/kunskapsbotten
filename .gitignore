@@ -3,3 +3,4 @@ data.json
 data.backup.json
 secret.json
 package-lock.json
+.vscode
