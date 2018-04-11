@@ -18,20 +18,62 @@ const mailTransport = nodemailer.createTransport({
 });
 
 // Kunskapsporten stuff
-const https = require("https");
+const request = require("request");
+const cheerio = require("cheerio");
 class KpApi {
 	constructor() {
-		this.options = {
-			hostname: "sts.kedschools.com",
-			port: 443,
-			path: "/adfs/ls/idpinitiatedsignon.aspx?RelayState=RPID%3Dhttps%253A%252F%252Fks.kunskapsporten.se%26RelayState%3Dhttps://ks.kunskapsporten.se/&RedirectToIdentityProvider=http%3a%2f%2fsts.kunskapsskolan.se%2fadfs%2fservices%2ftrust",
-			method: "GET",
-			headers: {}
-		};
+		this.request = request.defaults({jar: true});
+		this.loggedin = false;
+		this.login().then(function() {
+			console.log("KP logged in");
+			this.loggedin = true;
+		}.bind(this));
 	}
 	
-	request() {
-		https.request(this.options);
+	login() {
+		return new Promise(function(resolve, reject) {
+			this.request({
+				url: "https://sts.kedschools.com/adfs/ls/idpinitiatedsignon",
+				qs: {
+					"RelayState": "RPID=https%3A%2F%2Fks.kunskapsporten.se&RelayState=https://ks.kunskapsporten.se/",
+					"RedirectToIdentityProvider": "http://sts.kunskapsskolan.se/adfs/services/trust"
+				},
+				followAllRedirects: true
+			}, function(error, response, body) {
+				//console.log("step1");
+				this.request.post({
+					url: response.request.uri.href,
+					followAllRedirects: true,
+					form: {
+						"UserName": secret.kp.username,
+						"Password": secret.kp.password,
+						"AuthMethod": "FormsAuthentication"
+					}
+				}, function(error, response, body) {
+					//console.log("step2");
+					this.request.post({
+						url: "https://sts.kedschools.com/adfs/ls/",
+						form: {
+							"SAMLResponse": body.slice(185, -312),
+							"RelayState": body.slice(-262, -226)
+						}
+					}, function(error, response, body) {
+						//console.log("step3");
+						this.request.post({
+							url: "https://ks.kunskapsporten.se/saml/SAMLAssertionConsumer",
+							followAllRedirects: true,
+							form: {
+								"SAMLResponse": body.slice(205, -305),
+								"RelayState": "https://ks.kunskapsporten.se/"
+							}
+						 }, function(error, response, body) {
+							//console.log("step4");
+							resolve();
+						}.bind(this));
+					}.bind(this));
+				}.bind(this));
+			}.bind(this));
+		}.bind(this));
 	}
 }
 const port = new KpApi();
@@ -142,7 +184,7 @@ class PageMenu extends Menu {
 
 const roles = {
 	"432939088711254037": { // Moderator
-		commands: ["help", "register", "verify", "stats", "balance", "leaderboard", "slots", "daily", "setbalance", "eval"]
+		commands: ["help", "register", "verify", "stats", "balance", "leaderboard", "slots", "daily", "steg", "setbalance", "eval"]
 	},
 	"431418564755456000": { // @everyone
 		commands: ["help", "register", "verify", "stats", "balance", "leaderboard", "slots", "daily"]
@@ -196,7 +238,7 @@ function userAddXp(id, amount) {
 	}
 }
 function userXp(id) {
-	return (xpTotal(data.users[id].level) + data.users[id].xp);
+	return (xpTotal(data.users[id].level - 1) + data.users[id].xp);
 }
 
 const commands = {
@@ -565,6 +607,60 @@ const commands = {
 				}, 3000);
 			});
 			
+			return true;
+		}
+	},
+	"steg": {
+		usage: "steg <ämne> <steg>",
+		use: function(args, message) {
+			if (!(message.author.id in data.users) || !data.users[message.author.id].verified) {
+				message.channel.send(new Discord.RichEmbed({title:":x: Du måste registrera dig först. __ks!register <email>__"}));
+				return true;
+			}
+			
+			if (!port.loggedin) {
+				message.channel.send(new Discord.RichEmbed({title:":x: Botten är inte inloggad än. Försök igen om ett tag"}));
+				return true;
+			}
+			
+			let subjects = {
+				"en": "engelska",
+				"eng": "engelska",
+				"engelska": "engelska",
+				"fr": "franska",
+				"franska": "franska",
+				"ma": "matematik",
+				"matte": "matematik",
+				"matematik": "matematik",
+				"sp": "spanska",
+				"spa": "spanska",
+				"spanska": "spanska",
+				"sv": "svenska",
+				"svenska": "svenska",
+				"sva": "svenskasomandrasprak",
+				"ty": "tyska",
+				"tyska": "tyska"
+			};
+			
+			if (!(args[0] in subjects)) {
+				message.channel.send(new Discord.RichEmbed({title:":x: Ogiltigt ämne"}));
+				return false;
+			}
+			
+			let steg = parseInt(args[1]);
+			if (isNaN(steg)) {
+				message.channel.send(new Discord.RichEmbed({title:":x: Ogiltigt steg"}));
+				return false;
+			}
+			
+			port.request("https://ks.kunskapsporten.se/steg/" + subjects[args[0]] + "/block" + Math.ceil(steg / 5) + "/steg" + steg + "/introduktion", function(error, response, body) {
+				if (error) {
+					message.channel.send(new Discord.RichEmbed({title:":x: Steget kunde inte laddas"}));
+					return;
+				}
+				let doc = cheerio.load(body);
+				message.channel.send(doc("#readThis > div.sv-vertical.sv-layout > div > div > div.pagecontent.sv-layout.sv-spacer-20pxvt").text());
+			});
 			return true;
 		}
 	},
