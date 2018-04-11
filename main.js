@@ -182,7 +182,7 @@ class PageMenu extends Menu {
 	}
 }
 
-const roles = {
+let roles = data.roles || {
 	"432939088711254037": { // Moderator
 		commands: ["help", "register", "verify", "stats", "balance", "leaderboard", "slots", "daily", "steg", "setbalance", "eval"]
 	},
@@ -698,7 +698,7 @@ const commands = {
 discord.on("ready", function() {
 	console.log("Ready");
 	discord.user.setPresence({status:"online",game:{name:"ks!help"}});
-	guild = discord.guilds.get("431418564755456000");
+	guild = discord.guilds.get(data.guildId || "431418564755456000");
 });
 
 discord.on("message", function(message) {
