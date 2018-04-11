@@ -1,3 +1,4 @@
+const Discord = require("discord.js");
 const main = require("../../main");
 const COLOR = main.color;
 
@@ -43,15 +44,15 @@ module.exports = {
                 }
             ];
             new main.PageMenu(message.channel, message.author, pages);
-        } else if (args[0].toLowerCase() in commands) {
+        } else if (args[0].toLowerCase() in main.commands) {
             let command = args[0].toLowerCase();
             message.channel.send(new Discord.RichEmbed({
                 title: command,
                 color: COLOR,
-                description: commands[command].description,
+                description: main.commands[command].description,
                 fields: [
                     {
-                        name: "Använding: " + commands[command].usage,
+                        name: "Använding: " + main.commands[command].usage,
                         value: ""
                     }
                 ],

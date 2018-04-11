@@ -1,3 +1,4 @@
+const Discord = require("discord.js");
 const main = require("../../main");
 
 
@@ -11,7 +12,7 @@ module.exports = {
         
         let member = message.member;
         if (args.length >= 1) {
-            member = getUser(args.join(" ").toLowerCase());
+            member = main.getUser(args.join(" ").toLowerCase());
             if (member) {
                 if (!(member.id in main.data.users)) {
                     message.channel.send(new Discord.RichEmbed({title:":x: Användaren är inte registrerad"}));
@@ -36,7 +37,7 @@ module.exports = {
                 },
                 {
                     name: "Xp",
-                    value: main.data.users[member.id].xp + " / " + xpForLevel(main.data.users[member.id].level),
+                    value: main.data.users[member.id].xp + " / " + main.xpForLevel(main.data.users[member.id].level),
                     inline: true
                 },
                 {

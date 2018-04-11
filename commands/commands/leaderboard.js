@@ -1,3 +1,4 @@
+const Discord = require("discord.js");
 const main = require("../../main");
 
 module.exports.leaderboard = {
@@ -9,21 +10,21 @@ module.exports.leaderboard = {
         }
         
         let list = Object.keys(main.data.users).sort(function(a, b) {
-            return userXp(b) - userXp(a);
+            return main.userXp(b) - main.userXp(a);
         });
-        let length = Math.max.apply(null, list.map(function(user){return guild.members.get(user).displayName.length;}));
+        let length = Math.max.apply(null, list.map(function(user){return main.guild.members.get(user).displayName.length;}));
 
         message.channel.send(new Discord.RichEmbed({
             title: "Leaderboard 📋",
             description: "```md\n" + list.slice(0, 10).map(function(user, i) {
                 return "[" + (i + 1 + " ").slice(0, 2) + "]" +
-                       "(" + (guild.members.get(user).displayName + (new Array(length).fill(" ").join(""))).slice(0, length) + ") " +
-                       "<xp: " + userXp(user) + ">";
+                       "(" + (main.guild.members.get(user).displayName + (new Array(length).fill(" ").join(""))).slice(0, length) + ") " +
+                       "<xp: " + main.userXp(user) + ">";
             }).join("\n") + "```",
             fields: [
                 {
                     name: "Din plats",
-                    value: "```md\n[" + (list.indexOf(message.author.id) + 1) + "](" + message.member.displayName + ") <xp: " + userXp(message.author.id) + ">```"
+                    value: "```md\n[" + (list.indexOf(message.author.id) + 1) + "](" + message.member.displayName + ") <xp: " + main.userXp(message.author.id) + ">```"
                 }
             ]
         }));
@@ -121,7 +122,7 @@ module.exports.daily = {
                 slots = [rand(), rand(), rand()];
                 earnings = icons[slots[0]] + icons[slots[1]] + icons[slots[2]];
                 main.data.users[message.author.id].balance += earnings;
-                savemain.data();
+                main.saveData();
                 msg.edit(genMessage(true));
             }, 3000);
         });
