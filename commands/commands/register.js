@@ -1,10 +1,13 @@
 const Discord = require("discord.js");
 const main = require("../../main");
+const getUser = require("../../main").getUser;
+const User = require("../../main").User;
 
 module.exports = {
     usage: "register <email>",
     use: function(args, message) {
-        if (message.author.id in main.data.users && main.data.users[message.author.id].verified) {
+        let user = getUser(message.author.id);
+        if (user && user.verified) {
             message.channel.send(new Discord.RichEmbed({title:":x: Redan registrerad"}));
             return true;
         }
@@ -22,20 +25,12 @@ module.exports = {
                 }
             }
             message.delete();
-            let newData = main.data.users[message.author.id] = {
-                email: args[0],
-                code: Math.floor(1000 + Math.random() * 9000),
-                verified: false,
-                balance: 0,
-                xp: 0,
-                level: 0
-            };
-            main.saveData();
+            new User(message.author.id).register(args[0].toLowerCase());
             main.mailTransport.sendMail({
                 from: "TheDayDun@gmail.com",
                 to: args[0],
                 subject: "Mejl verifikation",
-                text: "Det här är din e-postbekräftelsekod: " + main.data.users[message.author.id].code
+                text: "Det här är din e-postbekräftelsekod: " + getUser(message.author.id).code
             });
             message.channel.send(new Discord.RichEmbed({title:":white_check_mark: E-postbekräftelseskod skickad! Skriv __ks!verify <code>__ för att verifiera ditt konto."}));
             return true;

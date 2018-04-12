@@ -10,7 +10,7 @@ module.exports.balance = {
         }
         
         if (args.length >= 1) {
-            let member = main.getUser(args.join(" ").toLowerCase());
+            let member = main.getUserQuery(args.join(" ").toLowerCase());
             if (member) {
                 if (member.id in main.data.users) {
                     message.channel.send(new Discord.RichEmbed({title:":dollar: Saldot för " + member.displayName + " är " + main.data.users[member.id].balance}));
@@ -45,7 +45,7 @@ module.exports.setbalance = {
         
         let member = message.member;
         if (args.length >= 2) {
-            member = main.getUser(args.slice(1).join(" ").toLowerCase());
+            member = main.getUserQuery(args.slice(1).join(" ").toLowerCase());
         }
         
         if (member) {

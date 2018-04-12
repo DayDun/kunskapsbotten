@@ -191,7 +191,71 @@ const roles = module.exports.roles = data.roles || {
 	}
 };
 
-function getUser(query) {
+function saveData() {
+	fs.writeFile("data.json", JSON.stringify(data), function(error) {
+		// TODO: Error handling
+	});
+}
+
+let users = {};
+const User = module.exports.User = class User {
+	constructor(id) {
+		this.id = id;
+		
+		if (!(this.id in data.users)) {
+			data.users[this.id] = {};
+		}
+		
+		users[this.id] = this;
+	}
+	
+	register(email) {
+		this.email = email;
+		this.code = Math.floor(1000 + Math.random() * 9000);
+		this.verified = false;
+		this.balance = 0;
+		this.xp = 0;
+		this.level = 0;
+		this.daily = 0;
+	}
+	
+	get email() { return data.users[this.id].email; }
+	set email(value) { data.users[this.id].email = value; saveData(); }
+	
+	get verified() { return data.users[this.id].verified; }
+	set verified(value) { data.users[this.id].verified = value; saveData(); }
+	
+	get balance() { return data.users[this.id].balance; }
+	set balance(value) { data.users[this.id].balance = value; saveData(); }
+	
+	get xp() { return data.users[this.id].xp; }
+	set xp(value) { data.users[this.id].xp = value; saveData(); }
+	
+	get level() { return data.users[this.id].level; }
+	set level(value) { data.users[this.id].level = value; saveData(); }
+	
+	get daily() { return data.users[this.id].daily; }
+	set daily(value) { data.users[this.id].daily = value; saveData(); }
+	
+	static xpForLevel(level) {
+		return 6 * (level + 1);
+	}
+	static xpTotalForLEvel(level) {
+		return 3 * (level + 1) * (level + 2);
+	}
+	
+	get totalXp() {
+		return this.xpTotalForLevel(this.level - 1) + this.xp;
+	}
+}
+for (let i in data.users) {
+	new User(i);
+}
+
+const getUser = module.exports.getUser = function getUser(id) {
+	return users[id];
+}
+function getUserQuery(query) {
 	let match = query.match(/^<@!?([0-9]+)>$/);
 	if (match) {
 		query = match[1];
@@ -201,18 +265,6 @@ function getUser(query) {
 			   (member.user.username.toLowerCase() == query) ||
 			   (member.id == query);
 	});
-}
-
-function saveData(newData) {
-	if(newData) {
-		fs.writeFile("data.json", JSON.stringify(newData), function(error) {
-			// TODO: Error handling
-		});
-	} else {
-		fs.writeFile("data.json", JSON.stringify(data), function(error) {
-			// TODO: Error handling
-		});
-	}
 }
 
 function xpForLevel(level) {
@@ -366,7 +418,10 @@ module.exports.mailTransport = mailTransport;
 module.exports.data = data;
 module.exports.guild = guild;
 
-module.exports.getUser = getUser;
+module.exports.users = users;
+//module.exports.User = User;
+
+module.exports.getUserQuery = getUserQuery;
 module.exports.saveData = saveData;
 module.exports.xpForLevel = xpForLevel;
 module.exports.xpTotal = xpTotal;

@@ -1,15 +1,16 @@
 const Discord = require("discord.js");
 const main = require("../../main");
+const getUser = require("../../main").getUser;
 
 module.exports = {
     usage: "verify <code>",
     use: function(args, message) {
-        if (message.author.id in main.data.users) {
-            if (!main.data.users[message.author.id].verified) {
-                if (main.data.users[message.author.id].code == args[0]) {
-                    main.data.users[message.author.id].verified = true;
+        let user = getUser(message.author.id);
+        if (user) {
+            if (!user.verified) {
+                if (user.code == args[0]) {
+                    user.verified = true;
                     message.member.addRole("432813256638464012");
-                    main.saveData();
                     message.channel.send(new Discord.RichEmbed({title:":white_check_mark: Ditt konto har blivit verifierat"}));
                     return true;
                 } else {

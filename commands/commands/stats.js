@@ -12,7 +12,7 @@ module.exports = {
         
         let member = message.member;
         if (args.length >= 1) {
-            member = main.getUser(args.join(" ").toLowerCase());
+            member = main.getUserQuery(args.join(" ").toLowerCase());
             if (member) {
                 if (!(member.id in main.data.users)) {
                     message.channel.send(new Discord.RichEmbed({title:":x: Användaren är inte registrerad"}));
