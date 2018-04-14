@@ -313,6 +313,10 @@ commands.steg = {
 			return true;
 		}
 		
+		if (args.length != 2) {
+			return false;
+		}
+		
 		let subjects = {
 			"en": "engelska",
 			"eng": "engelska",
